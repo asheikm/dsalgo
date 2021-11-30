@@ -32,21 +32,28 @@ type Filler struct {
 	fillerStr string
 }
 
+type Fillerer interface {
+	filler()
+}
+
 /* O(n) --> Linear operation
    staight forward or brute force search to find something
 */
 
 func main() {
 	// Tell the system to use cpus available, let us see if it means ot anything
-	// with go routines with synchronization using sync package
+	// with go routines with channels and sync package for communication
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	strslice := make([]string, 1, 1)
 
-	var wg sync.WaitGroup
+	// no go routines
+	if NOTHREAD {
+		runWithNoGo(strslice)
+	}
 
 	// check by enabling wait group
 	if WGCODE {
-		runWithSyncGo(&wg, strslice)
+		runWithSyncGo(strslice)
 	}
 
 	// check by using channel communication
@@ -54,19 +61,52 @@ func main() {
 		runWithChanGo(strslice)
 	}
 
-	// no go routines
-	if NOTHREAD {
-		runWithNoGo(strslice)
+	inchan := make(chan []string)
+	var wg sync.WaitGroup
+	wg.Add(2)
+	wgFillerReceiver := wgFiller{10000, strslice, "banana", &wg}
+	chFillerReceiver := chanFiller{10000, strslice, "banana", inchan}
+	FillerReceiver := Filler{10000, strslice, "banana"}
+
+	f := []Fillerer{&FillerReceiver, &wgFillerReceiver, &chFillerReceiver}
+	for _, v := range f {
+		go v.filler()
 	}
+	go func() {
+		defer wgFillerReceiver.wg.Done()
+		for _, v := range wgFillerReceiver.strslice {
+			if strings.Compare("banana", v) == 0 {
+				// fmt.Printf("Banana found \n")
+			}
+		}
+	}()
+
+	wgFillerReceiver.wg.Wait()
+	fmt.Printf("len of strslice - fillerer: %d\n", len(wgFillerReceiver.strslice))
+
+	inslice := <-chFillerReceiver.chanin
+	for _, v := range inslice {
+		if strings.Compare("banana", v) == 0 {
+			// fmt.Printf("Banana found \n")
+		}
+	}
+	fmt.Printf("len of strslice - fillerer: %d\n", len(wgFillerReceiver.strslice))
+
+	for _, v := range FillerReceiver.strslice {
+		if strings.Compare("banana", v) == 0 {
+			// fmt.Printf("Banana found \n")
+		}
+	}
+	fmt.Printf("len of strslice - fillerer: %d\n", len(wgFillerReceiver.strslice))
 }
 
 // filler for wg
-func (wgfill *wgFiller) filler() []string {
+func (wgfill *wgFiller) filler() {
+	defer wgfill.wg.Done()
 	for i := 0; i < wgfill.n; i++ {
 		wgfill.strslice = append(wgfill.strslice, wgfill.fillerStr)
 	}
-	wgfill.wg.Done()
-	return wgfill.strslice
+
 }
 
 // filler for chan
@@ -78,11 +118,10 @@ func (chfill *chanFiller) filler() {
 }
 
 // filler for no goroutine
-func (fill *Filler) filler() []string {
+func (fill *Filler) filler() {
 	for i := 0; i < fill.n; i++ {
 		fill.strslice = append(fill.strslice, fill.fillerStr)
 	}
-	return fill.strslice
 }
 
 func timeTrack(start time.Time, name string) {
@@ -90,62 +129,51 @@ func timeTrack(start time.Time, name string) {
 	fmt.Printf("%s took %s to complete\n", name, elapsed)
 }
 
-func runWithSyncGo(wg *sync.WaitGroup, strslice []string) {
-	strArray := [5]string{"apple", "orange", "pinapple", "mango", "banana"}
+func runWithSyncGo(strslice []string) {
 	defer timeTrack(time.Now(), "syncode")
-	wg.Add(3)
+	var wg sync.WaitGroup
+	wgFillerReceiver := wgFiller{10000, strslice, "banana", &wg}
+	wgFillerReceiver.wg.Add(2)
+	go wgFillerReceiver.filler()
 	go func() {
-		wgFillerMethod := wgFiller{10000, strslice, "banana", wg}
-		strslice = wgFillerMethod.filler()
-	}()
-	go func() {
-		for _, v := range strArray {
-			if strings.Compare("mango", v) == 0 {
-				// fmt.Printf("Banana found \n")
-			}
-		}
-		wg.Done()
-	}()
-
-	go func() {
-		for _, v := range strslice {
+		defer wgFillerReceiver.wg.Done()
+		for _, v := range wgFillerReceiver.strslice {
 			if strings.Compare("banana", v) == 0 {
 				// fmt.Printf("Banana found \n")
 			}
 		}
-		wg.Done()
 	}()
-	fmt.Printf("len of strslice: %d\n", len(strslice))
-	wg.Wait()
+	wgFillerReceiver.wg.Wait()
+	fmt.Printf("len of strslice: %d\n", len(wgFillerReceiver.strslice))
 }
 
 func runWithChanGo(strslice []string) {
 	defer timeTrack(time.Now(), "chancode")
 	inchan := make(chan []string)
+	chFillerReceiver := chanFiller{10000, strslice, "banana", inchan}
 	go func() {
-		chFillerMethod := chanFiller{10000, strslice, "banana", inchan}
-		chFillerMethod.filler()
+		chFillerReceiver.filler()
 	}()
 
-	inslice := <-inchan
+	inslice := <-chFillerReceiver.chanin
 	for _, v := range inslice {
 		if strings.Compare("banana", v) == 0 {
 			// fmt.Printf("Banana found \n")
 		}
 	}
-	fmt.Printf("len of strslice: %d\n", len(strslice))
+	fmt.Printf("len of strslice: %d\n", len(inslice))
 }
 
 func runWithNoGo(strslice []string) {
 	defer timeTrack(time.Now(), "nogoroutine")
 
-	FillerMethod := Filler{10000, strslice, "banana"}
-	slicestr := FillerMethod.filler()
+	FillerReceiver := Filler{10000, strslice, "banana"}
+	FillerReceiver.filler()
 
-	for _, v := range slicestr {
+	for _, v := range FillerReceiver.strslice {
 		if strings.Compare("banana", v) == 0 {
 			// fmt.Printf("Banana found \n")
 		}
 	}
-	fmt.Printf("len of strslice: %d\n", len(strslice))
+	fmt.Printf("len of strslice: %d\n", len(FillerReceiver.strslice))
 }
