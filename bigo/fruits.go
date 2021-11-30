@@ -41,80 +41,22 @@ func main() {
 	// with go routines with synchronization using sync package
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	strslice := make([]string, 1, 1)
-	strArray := [5]string{"apple", "orange", "pinapple", "mango", "banana"}
 
-	start := time.Now()
 	var wg sync.WaitGroup
 
 	// check by enabling wait group
 	if WGCODE {
-
-		wg.Add(3)
-		go func(*sync.WaitGroup) {
-			wgFillerMethod := wgFiller{10000, strslice, "banana", &wg}
-			strslice = wgFillerMethod.filler()
-		}(&wg)
-		go func() {
-			for _, v := range strArray {
-				if strings.Compare("mango", v) == 0 {
-					// fmt.Printf("Banana found \n")
-				}
-			}
-			wg.Done()
-		}()
-
-		go func() {
-			for _, v := range strslice {
-				if strings.Compare("banana", v) == 0 {
-					// fmt.Printf("Banana found \n")
-				}
-			}
-			wg.Done()
-		}()
-
+		runWithSyncGo(&wg, strslice)
 	}
-
-	wg.Wait()
-	end := time.Since(start)
-	fmt.Printf("len of strslice: %d\n", len(strslice))
-	fmt.Println("Took ", end, "to complete the sync code")
 
 	// check by using channel communication
 	if CHANCODE {
-		startChanCode := time.Now()
-		inchan := make(chan []string)
-		go func() {
-			chFillerMethod := chanFiller{10000, strslice, "banana", inchan}
-			chFillerMethod.filler()
-		}()
-
-		inslice := <-inchan
-		for _, v := range inslice {
-			if strings.Compare("banana", v) == 0 {
-				// fmt.Printf("Banana found \n")
-			}
-		}
-		endChanCode := time.Since(startChanCode)
-		fmt.Printf("len of strslice: %d\n", len(strslice))
-		fmt.Println("Took ", endChanCode, "to complete the chan code")
-
+		runWithChanGo(strslice)
 	}
 
 	// no go routines
 	if NOTHREAD {
-		startCode := time.Now()
-
-		FillerMethod := Filler{10000, strslice, "banana"}
-		slicestr := FillerMethod.filler()
-
-		for _, v := range slicestr {
-			if strings.Compare("banana", v) == 0 {
-				// fmt.Printf("Banana found \n")
-			}
-		}
-		endCode := time.Since(startCode)
-		fmt.Printf("len of strslice: %d\n", len(strslice))
-		fmt.Println("Took ", endCode, "to complete without chan or sync code")
+		runWithNoGo(strslice)
 	}
 }
 
@@ -141,6 +83,71 @@ func (fill *Filler) filler() []string {
 		fill.strslice = append(fill.strslice, fill.fillerStr)
 	}
 	return fill.strslice
+}
+
+func timeTrack(start time.Time, name string) {
+	elapsed := time.Since(start)
+	fmt.Printf("%s took %s to complete\n", name, elapsed)
+}
+
+func runWithSyncGo(wg *sync.WaitGroup, strslice []string) {
+	strArray := [5]string{"apple", "orange", "pinapple", "mango", "banana"}
+	defer timeTrack(time.Now(), "syncode")
+	wg.Add(3)
+	go func() {
+		wgFillerMethod := wgFiller{10000, strslice, "banana", wg}
+		strslice = wgFillerMethod.filler()
+	}()
+	go func() {
+		for _, v := range strArray {
+			if strings.Compare("mango", v) == 0 {
+				// fmt.Printf("Banana found \n")
+			}
+		}
+		wg.Done()
+	}()
+
+	go func() {
+		for _, v := range strslice {
+			if strings.Compare("banana", v) == 0 {
+				// fmt.Printf("Banana found \n")
+			}
+		}
+		wg.Done()
+	}()
+	fmt.Printf("len of strslice: %d\n", len(strslice))
+	wg.Wait()
+}
+
+func runWithChanGo(strslice []string) {
+	defer timeTrack(time.Now(), "chancode")
+	inchan := make(chan []string)
+	go func() {
+		chFillerMethod := chanFiller{10000, strslice, "banana", inchan}
+		chFillerMethod.filler()
+	}()
+
+	inslice := <-inchan
+	for _, v := range inslice {
+		if strings.Compare("banana", v) == 0 {
+			// fmt.Printf("Banana found \n")
+		}
+	}
+	fmt.Printf("len of strslice: %d\n", len(strslice))
+}
+
+func runWithNoGo(strslice []string) {
+	defer timeTrack(time.Now(), "nogoroutine")
+
+	FillerMethod := Filler{10000, strslice, "banana"}
+	slicestr := FillerMethod.filler()
+
+	for _, v := range slicestr {
+		if strings.Compare("banana", v) == 0 {
+			// fmt.Printf("Banana found \n")
+		}
+	}
+	fmt.Printf("len of strslice: %d\n", len(strslice))
 }
 
 /**************************************************************************
