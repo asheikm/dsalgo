@@ -32,6 +32,10 @@ type Filler struct {
 	fillerStr string
 }
 
+/* O(n) --> Linear operation
+   staight forward or brute force search to find something
+*/
+
 func main() {
 	// Tell the system to use cpus available, let us see if it means ot anything
 	// with go routines with synchronization using sync package
