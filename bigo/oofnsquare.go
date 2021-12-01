@@ -47,7 +47,7 @@ func selectionSort(arr []int) []int {
 }
 
 // o(n^2) Insertion sort
-func insertionSort(int []arr) {
+func insertionSort(int []arr) []arr {
 	n := len(arr)
 	j := 0
 	for i := 1; i < n; i++ {
@@ -58,4 +58,5 @@ func insertionSort(int []arr) {
 		}
 		arr[j+1] = key
 	}
+	return arr
 }
