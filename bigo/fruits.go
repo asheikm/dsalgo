@@ -151,9 +151,8 @@ func runWithChanGo(strslice []string) {
 	defer timeTrack(time.Now(), "chancode")
 	inchan := make(chan []string)
 	chFillerReceiver := chanFiller{10000, strslice, "banana", inchan}
-	go func() {
-		chFillerReceiver.filler()
-	}()
+
+	go chFillerReceiver.filler()
 
 	inslice := <-chFillerReceiver.chanin
 	for _, v := range inslice {
