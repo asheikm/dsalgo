@@ -12,6 +12,7 @@ func main() {
 	arr := [...]int{1, 2, 3, 4, 5, 6, 7, 9, 9, 10}
 	printFistTwoElements(arr)
 	evenorOdd(7)
+	getNthElement(8, arr)
 
 }
 
@@ -28,4 +29,10 @@ func evenorOdd(num int) {
 	} else {
 		fmt.Println("odd")
 	}
+}
+
+// o(1)
+func getNthElement(nth int, e [10]int) {
+	// no error checking, just for understanding
+	return e[nth]
 }
