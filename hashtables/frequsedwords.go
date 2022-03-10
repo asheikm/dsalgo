@@ -62,4 +62,4 @@ func sortByValue(m map[string]int) []kv {
 }
 
 // How to run the code ?
-// go run parse.go
+// go run frequsedwords.go
