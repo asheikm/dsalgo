@@ -32,7 +32,8 @@ func main() {
 		if m[word] == 0 || len(m) == 0 {
 			m[word] = 1
 		} else if m[word] >= 1 {
-			m[word] = m[word] + 1
+			// m[word] = m[word] + 1
+			m[word]++ // better than above, only one hashing run
 		}
 	}
 	// Sort the map by putting the word and frequency into a struct which will be easier to sort and get required data
