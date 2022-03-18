@@ -29,7 +29,6 @@ func main() {
 	// returns a slice of words each as string and insert into map where repeated frequenty will be increamented
 	// on each repeation
 	words := strings.Fields(string(b))
-
 	for _, word := range words {
 		m[strings.Trim(strings.ToLower(word), "!@#$%^&*()_+-=[]{};':\"\\|,.<>/?")]++
 	}
