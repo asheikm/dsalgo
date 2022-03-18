@@ -35,8 +35,9 @@ func main() {
 	// Sort the map by putting the word and frequency into a struct which will be easier to sort and get required data
 	sorted := sortByValue(m)
 	for i := 0; i < mostRepeatedTwenty; i++ {
-		fmt.Printf("  %d %s\n", sorted[i].num, sorted[i].word)
+		fmt.Printf("   %4d %s\n", sorted[i].num, sorted[i].word)
 	}
+
 }
 
 type kv struct {
@@ -59,3 +60,8 @@ func sortByValue(m map[string]int) []kv {
 
 // How to run the code ?
 // go run frequsedwords.go
+
+/* The output should be equal to the output the following shell script output
+#!/usr/bin/env bash
+cat mobidick.txt | tr -cs 'a-zA-Z' '[\n*]' | grep -v "^$" | tr '[:upper:]''[:lower:]'| sort | uniq -c | sort -nr | head -20
+*/
