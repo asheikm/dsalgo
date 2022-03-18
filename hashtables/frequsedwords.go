@@ -10,6 +10,7 @@ package main
 import (
 	"fmt"
 	"os"
+
 	"sort"
 	"strings"
 )
@@ -21,26 +22,22 @@ func main() {
 	m := make(map[string]int)
 	b, err := os.ReadFile(filename)
 	if err != nil {
-		fmt.Println("Unable to read file")
+		fmt.Errorf("Unable to read given file ", err)
 		return
 	}
 	// After reading the file as bytes convert that to string and split using space.
 	// returns a slice of words each as string and insert into map where repeated frequenty will be increamented
 	// on each repeation
-	words := strings.Split(string(b), " ")
+	words := strings.Fields(string(b))
+
 	for _, word := range words {
-		if m[word] == 0 || len(m) == 0 {
-			m[word] = 1
-		} else if m[word] >= 1 {
-			m[word] = m[word] + 1
-		}
+		m[strings.Trim(strings.ToLower(word), "!@#$%^&*()_+-=[]{};':\"\\|,.<>/?")]++
 	}
 	// Sort the map by putting the word and frequency into a struct which will be easier to sort and get required data
 	sorted := sortByValue(m)
 	for i := 0; i < mostRepeatedTwenty; i++ {
-		fmt.Printf("word: %s, noofoccurances: %d\n", sorted[i].word, sorted[i].num)
+		fmt.Printf("  %d %s\n", sorted[i].num, sorted[i].word)
 	}
-
 }
 
 type kv struct {
