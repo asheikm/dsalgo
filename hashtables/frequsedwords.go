@@ -30,14 +30,13 @@ func main() {
 	// on each repeation
 	words := strings.Fields(string(b))
 	for _, word := range words {
-		m[strings.Trim(strings.ToLower(word), "!@#$%^&*()_+-=[]{};':\"\\|,.<>/?")]++
+		m[strings.Trim(strings.ToLower(word), "~`!@#$%^&*()_+-=[]{};':\"\\|,.<>/?")]++
 	}
 	// Sort the map by putting the word and frequency into a struct which will be easier to sort and get required data
 	sorted := sortByValue(m)
 	for i := 0; i < mostRepeatedTwenty; i++ {
 		fmt.Printf("   %4d %s\n", sorted[i].num, sorted[i].word)
 	}
-
 }
 
 type kv struct {
