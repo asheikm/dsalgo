@@ -18,6 +18,8 @@ import (
 
 func main() {
 	defer elapsed()()
+	ch := make(chan bool)
+	rwmutex := new(sync.RWMutex)
 	// Filename and max freq hardcoded
 	mostRepeatedTwenty := 20
 	filename := "mobydick.txt"
@@ -27,18 +29,30 @@ func main() {
 		fmt.Errorf("Unable to read given file ", err)
 		return
 	}
+	printFreqOccurance := func() {
+		rwmutex.RLock()
+		// Sort the map by putting the word and frequency into a struct which will be easier to sort and get required data
+		sorted := sortByValue(m)
+		for i := 0; i < mostRepeatedTwenty; i++ {
+			fmt.Printf("   %4d %s\n", sorted[i].num, sorted[i].word)
+		}
+		rwmutex.RUnlock()
+		<-ch
+	}
 	// After reading the file as bytes convert that to string and split using space.
 	// returns a slice of words each as string and insert into map where repeated frequenty will be increamented
 	// on each repeation
-	words := strings.Fields(string(b))
-	for _, word := range words {
-		m[strings.Trim(strings.ToLower(word), "~`!@#$%^&*()_+-=[]{};':\"\\|,.<>/?")]++
+	writeToMap := func() {
+		rwmutex.Lock()
+		words := strings.Fields(string(b))
+		for _, word := range words {
+			m[strings.Trim(strings.ToLower(word), "~`!@#$%^&*()_+-=[]{};':\"\\|,.<>/?")]++
+		}
+		rwmutex.Unlock()
 	}
-	// Sort the map by putting the word and frequency into a struct which will be easier to sort and get required data
-	sorted := sortByValue(m)
-	for i := 0; i < mostRepeatedTwenty; i++ {
-		fmt.Printf("   %4d %s\n", sorted[i].num, sorted[i].word)
-	}
+	go printFreqOccurance()
+	go writeToMap()
+	ch <- true
 }
 
 func elapsed() func() {
