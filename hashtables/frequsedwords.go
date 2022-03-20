@@ -12,7 +12,6 @@ import (
 	"os"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 )
 
