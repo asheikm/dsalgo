@@ -37,3 +37,25 @@ func worseCommit(commit1 int, commit2 int) bool {
 	}
 	return false
 }
+
+func allBadCommits2(commitIds []int) []int {
+	badCommits := make([]int, 0, 0)
+	// processedCommits := make([]int, 0, 0)
+	iterLength := len(commitIds) - 1
+	return process(iterLength, badCommits, commitIds)
+}
+
+func process(iterLength int, badCommits []int, commitIds []int) []int {
+	for i := 0; i < iterLength; i++ {
+		if worseCommit(commitIds[i], commitIds[i+1]) {
+			badCommits = append(badCommits, commitIds[i+1])
+		}
+		i++
+	}
+	iterLength = len(badCommits)
+	if iterLength <= 1 {
+		return badCommits
+	} else {
+		return process(iterLength-1, badCommits, badCommits)
+	}
+}
