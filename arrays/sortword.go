@@ -29,7 +29,7 @@ func getNum(word string) (byte, error) {
 	return 0, errors.New("not found")
 }
 
-func sortUsingRegExp(str string) []string {
+func sortNumsFromStringUsingRegExp(str string) []string {
 	re := regexp.MustCompile("[0-9]+")
 	return re.FindAllString(str, -1)
 }
@@ -40,7 +40,7 @@ func main() {
 	m1 := make(map[int]string)
 	Input := "is2 Thi1s T4est 3a"
 
-	nums := sortUsingRegExp(Input) // This will work on any numberic string data
+	nums := sortNumsFromStringUsingRegExp(Input) // This will work on any numberic string data
 	for i, word := range strings.Fields(Input) {
 		i, err := strconv.Atoi(nums[i])
 		if err == nil {
