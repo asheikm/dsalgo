@@ -58,11 +58,7 @@ func sortMap(m map[int]string) string {
 	for k := range m {
 		keys = append(keys, k)
 	}
-	// I thought of default sort of Bytes available, but somehow since it is a slice we have use callback for comparision
-	// no straight forward method availbale to sort Byte array
-	sort.Slice(keys, func(i, j int) bool {
-		return keys[i] < keys[j]
-	})
+	sort.Ints(keys)
 	for i := 0; i < len(keys); i++ {
 		str += m[keys[i]] + " "
 	}
