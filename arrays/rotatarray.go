@@ -24,7 +24,7 @@ func rotate(nums []int, k int)  {
         k = k % len(nums)
     }
     lastHalf := nums[len(nums)-k:]
-	firstHalf := nums[:len(nums)-k]
+    firstHalf := nums[:len(nums)-k]
     combined := append(lastHalf, firstHalf...)
     for i := range nums {
         nums[i] = combined[i]
